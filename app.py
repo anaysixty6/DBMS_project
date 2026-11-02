@@ -9,7 +9,7 @@ def get_db():
         host=os.environ.get("DB_HOST", "mysql-121b7093-anay-35b4.c.aivencloud.com"),
         port=int(os.environ.get("DB_PORT", 21628)),
         user=os.environ.get("DB_USER", "avnadmin"),
-        password=os.environ.get("DB_PASSWORD", "YOUR_AIVEN_PASSWORD"),  # <-- Put your actual Aiven password here if running locally
+        password=os.environ.get("DB_PASSWORD", "AVNS_zsQqCZsuSRG6gjXmuOA"),  # <-- Put your actual Aiven password here if running locally
         database=os.environ.get("DB_NAME", "student_collab_db")
     )
 
