@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CollabCampus — Student Collaboration Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #090d16;
+            color: #e2e8f0;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .glass {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-hover:hover {
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.15);
+            transform: translateY(-2px);
+            transition: all 0.2s ease;
+        }
+
+        .sql-xray {
+            display: none;
+        }
+
+        body.xray-on .sql-xray {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex overflow-x-hidden">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="w-72 glass border-r border-slate-800/80 flex flex-col justify-between fixed h-full z-20">
+        <div>
+            <!-- Brand Header -->
+            <div class="p-6 flex items-center gap-3 border-b border-slate-800/80">
+                <div
+                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-cubes-stacked text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-tight text-white">Collab<span
+                            class="text-indigo-400">Campus</span></h1>
+                    <p class="text-xs text-slate-400">DBMS Architecture v2.0</p>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <nav class="p-4 space-y-2">
+                <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">Core Platform
+                    Modules</p>
+
+                <button onclick="switchTab('market')" id="nav-market"
+                    class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all">
+                    <i class="fa-solid fa-compass w-5 text-indigo-400"></i>
+                    <span>Project Market & Skills</span>
+                </button>
+
+                <button onclick="switchTab('teams')" id="nav-teams"
+                    class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all">
+                    <i class="fa-solid fa-people-group w-5 text-emerald-400"></i>
+                    <span>Team Builder & Tasks</span>
+                </button>
+
+                <button onclick="switchTab('mentors')" id="nav-mentors"
+                    class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all">
+                    <i class="fa-solid fa-user-astronaut w-5 text-amber-400"></i>
+                    <span>Mentor Hub & Requests</span>
+                </button>
+
+                <button onclick="switchTab('showcase')" id="nav-showcase"
+                    class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all">
+                    <i class="fa-solid fa-trophy w-5 text-pink-400"></i>
+                    <span>Showcase & Admin</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Bottom Status Box -->
+        <div class="p-4 m-4 rounded-xl bg-slate-900/90 border border-slate-800">
+            <div class="flex items-center gap-2 text-xs text-emerald-400 font-medium mb-1">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                MySQL 3NF Engine Active
+            </div>
+            <p class="text-[11px] text-slate-400">9 Tables • Views • Triggers • Procs</p>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 ml-72 p-8">
+
+        <!-- TOP HEADER BAR -->
+        <header class="flex flex-wrap justify-between items-center mb-8 pb-5 border-b border-slate-800/80">
+            <div>
+                <h2 class="text-2xl font-extrabold text-white tracking-tight">Student Collaboration Platform</h2>
+                <p class="text-sm text-slate-400">Real-time MySQL relational workflow & automated team orchestration</p>
+            </div>
+
+            <!-- VIVA X-RAY MODE SWITCH -->
+            <div class="flex items-center gap-4">
+                <button onclick="toggleXray()" id="xrayBtn"
+                    class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-indigo-950/80 border border-indigo-500/40 text-xs font-semibold text-indigo-300 transition shadow-lg">
+                    <i class="fa-solid fa-terminal text-indigo-400"></i>
+                    <span>Toggle SQL Viva X-Ray</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- ========================================================= -->
+        <!-- TAB 1: PROJECT MARKET & SKILL MATCHING                    -->
+        <!-- ========================================================= -->
+        <section id="tab-market" class="tab-section space-y-8">
+
+            <!-- SQL X-Ray Box -->
+            <div
+                class="sql-xray p-4 rounded-xl bg-indigo-950/40 border border-indigo-500/40 text-xs mono text-indigo-200">
+                <span class="text-indigo-400 font-bold">// MYSQL VIEW RUNNING BELOW:</span><br>
+                SELECT * FROM Open_Projects_View; -- Joins Projects & Users where status = 'Open'
+            </div>
+
+            <!-- Project Market Grid -->
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-fire text-orange-400"></i> Open Project Market
+                    </h3>
+                    <span
+                        class="text-xs px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mono">VIEW:
+                        Open_Projects_View</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {% for p in open_projects %}
+                    <div class="glass glass-hover rounded-2xl p-6 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-3">
+                                <span
+                                    class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                    ● OPEN FOR TEAM
+                                </span>
+                                <span class="text-xs text-slate-500 mono">#PRJ-{{ p.project_id }}</span>
+                            </div>
+                            <h4 class="text-lg font-bold text-white mb-2">{{ p.title }}</h4>
+                            <p class="text-sm text-slate-400 mb-4 line-clamp-2">{{ p.description }}</p>
+                        </div>
+                        <div
+                            class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-300">
+                            <div>
+                                <span class="text-slate-500 block">Project Lead</span>
+                                <span class="font-semibold text-white">{{ p.created_by }}</span> ({{ p.department }})
+                            </div>
+                            <div class="text-right">
+                                <span class="text-slate-500 block">Max Capacity</span>
+                                <span class="font-semibold text-indigo-400"><i class="fa-solid fa-users mr-1"></i>{{
+                                    p.max_team_size }} Members</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Skill Matching Engine -->
+            <div class="glass rounded-2xl p-6">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> Smart Skill Matching Engine
+                        </h3>
+                        <p class="text-xs text-slate-400">Matches student proficiencies in <code
+                                class="text-purple-300">User_Skills</code> against <code
+                                class="text-purple-300">Project_Skills</code></p>
+                    </div>
+                    <span
+                        class="text-xs px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20 mono">4-TABLE
+                        INNER JOIN</span>
+                </div>
+
+                <div
+                    class="sql-xray mb-4 p-4 rounded-xl bg-purple-950/40 border border-purple-500/40 text-xs mono text-purple-200">
+                    SELECT p.title, s.skill_name, us.proficiency FROM Projects p JOIN Project_Skills ps JOIN Skills s
+                    JOIN User_Skills us WHERE us.user_id = {{ selected_student_id }} AND p.status = 'Open';
+                </div>
+
+                <form method="GET" action="/" class="flex flex-wrap gap-3 mb-6">
+                    <input type="hidden" name="tab" value="market">
+                    <select name="student_id"
+                        class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 min-w-[280px]">
+                        {% for s in students %}
+                        <option value="{{ s.user_id }}" {% if s.user_id==selected_student_id %}selected{% endif %}>
+                            👨‍🎓 {{ s.full_name }} — {{ s.department }} (ID #{{ s.user_id }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit"
+                        class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 transition">
+                        Run Skill Match Query
+                    </button>
+                </form>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for m in matched_projects %}
+                    <div
+                        class="p-4 rounded-xl bg-slate-900/90 border border-purple-500/30 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-purple-400 font-semibold uppercase">Recommended Match</span>
+                            <h4 class="text-base font-bold text-white mt-0.5">{{ m.project_title }}</h4>
+                        </div>
+                        <div class="text-right">
+                            <span
+                                class="px-3 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 font-semibold text-xs mono">{{
+                                m.skill_name }}</span>
+                            <span class="block text-[11px] text-slate-400 mt-1">Level: {{ m.proficiency }}</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div
+                        class="col-span-2 p-6 text-center rounded-xl bg-slate-900/50 border border-slate-800 text-slate-400 text-sm">
+                        No open projects currently require this student's registered skills.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- TAB 2: TEAM BUILDER & KANBAN TASK MANAGER                 -->
+        <!-- ========================================================= -->
+        <section id="tab-teams" class="tab-section space-y-8 hidden">
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left Column: Launch Project (Fires MySQL Trigger) -->
+                <div class="glass rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-white text-base"><i
+                                class="fa-solid fa-bolt text-emerald-400 mr-2"></i>Launch New Project</h3>
+                        <span
+                            class="text-[11px] px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mono">AFTER
+                            INSERT TRIGGER</span>
+                    </div>
+
+                    <div
+                        class="sql-xray mb-4 p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-[11px] mono text-emerald-200">
+                        TRIGGER Auto_Add_Creator_To_Team AFTER INSERT ON Projects -> Automatically inserts creator into
+                        Team_Members!
+                    </div>
+
+                    <form method="POST" action="/create_project" class="space-y-4">
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Project Title</label>
+                            <input type="text" name="title" required placeholder="e.g., Autonomous Drone Delivery"
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs text-slate-400 block mb-1">Creator User ID</label>
+                                <input type="number" name="creator_id" value="1" min="1" required
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-400 block mb-1">Max Team Size</label>
+                                <input type="number" name="max_size" value="4" min="1" max="10" required
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Description</label>
+                            <textarea name="description" rows="2" required placeholder="Brief technical overview..."
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white"></textarea>
+                        </div>
+                        <button type="submit"
+                            class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm shadow-lg shadow-emerald-600/25 transition">
+                            Create Project & Fire Trigger
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Right 2 Columns: Active Team Roster -->
+                <div class="lg:col-span-2 glass rounded-2xl p-6">
+                    <h3 class="font-bold text-white text-base mb-4"><i
+                            class="fa-solid fa-users-gear text-indigo-400 mr-2"></i>Active Team Builder Roster
+                        (`Team_Members`)</h3>
+                    <div class="overflow-y-auto max-h-72 pr-2 space-y-2.5">
+                        {% for tm in team_members %}
+                        <div
+                            class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-9 h-9 rounded-full bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center font-bold text-indigo-300 text-xs">
+                                    {{ tm.full_name[:2] | upper }}
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-white">{{ tm.full_name }}</h4>
+                                    <p class="text-xs text-slate-400">{{ tm.project_title }} • <span
+                                            class="text-indigo-400">{{ tm.role_in_team }}</span></p>
+                                </div>
+                            </div>
+                            <span
+                                class="px-2.5 py-1 rounded-md text-xs font-semibold {% if tm.join_status == 'Accepted' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20{% else %}bg-amber-500/10 text-amber-400 border border-amber-500/20{% endif %}">
+                                {{ tm.join_status }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- KANBAN TASK MANAGER BOARD -->
+            <div class="glass rounded-2xl p-6">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-sky-400"></i> Interactive Kanban Task Manager
+                        </h3>
+                        <p class="text-xs text-slate-400">Powered by MySQL Stored Procedure <code
+                                class="text-sky-300">CALL Get_Project_Tasks({{ selected_proj_id }})</code></p>
+                    </div>
+
+                    <form method="GET" action="/" class="flex items-center gap-2">
+                        <input type="hidden" name="tab" value="teams">
+                        <select name="project_id"
+                            class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+                            {% for proj in all_projects %}
+                            <option value="{{ proj.project_id }}" {% if proj.project_id==selected_proj_id %}selected{%
+                                endif %}>
+                                Project #{{ proj.project_id }}: {{ proj.title }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit"
+                            class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-semibold text-white">Load
+                            Board</button>
+                    </form>
+                </div>
+
+                <!-- Quick Add Task Bar -->
+                <form method="POST" action="/add_task"
+                    class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6 p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                    <input type="hidden" name="project_id" value="{{ selected_proj_id }}">
+                    <input type="text" name="task_title" required placeholder="New Task Title..."
+                        class="md:col-span-2 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                    <input type="number" name="assigned_to" required placeholder="Assign User ID (e.g. 1)" value="1"
+                        class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                    <input type="date" name="deadline" required value="2026-11-30"
+                        class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                    <button type="submit"
+                        class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold py-2">+
+                        Assign Task</button>
+                </form>
+
+                <!-- 3-Column Kanban Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    {% for col_status, col_label, col_color in [('To_Do', '📌 TO DO', 'border-slate-700'),
+                    ('In_Progress', '⚡ IN PROGRESS', 'border-amber-500/40'), ('Done', '✅ COMPLETED',
+                    'border-emerald-500/40')] %}
+                    <div class="rounded-xl bg-slate-900/70 border {{ col_color }} p-4">
+                        <div class="text-xs font-bold tracking-wider text-slate-300 mb-3">{{ col_label }}</div>
+                        <div class="space-y-3">
+                            {% for t in tasks if t.task_status == col_status %}
+                            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                                <div class="flex justify-between items-start mb-1">
+                                    <span class="font-semibold text-sm text-white">{{ t.task_title }}</span>
+                                    <span class="text-[10px] text-slate-500 mono">#{{ t.task_id }}</span>
+                                </div>
+                                <p class="text-xs text-slate-400 mb-3">👤 {{ t.assigned_student or 'Unassigned' }} • 📅
+                                    {{ t.deadline }}</p>
+                                <div class="flex gap-1.5">
+                                    {% if col_status != 'To_Do' %}
+                                    <a href="/update_task_status/{{ t.task_id }}/To_Do/{{ selected_proj_id }}"
+                                        class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300">To
+                                        Do</a>
+                                    {% endif %}
+                                    {% if col_status != 'In_Progress' %}
+                                    <a href="/update_task_status/{{ t.task_id }}/In_Progress/{{ selected_proj_id }}"
+                                        class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-[10px] text-amber-300">In
+                                        Progress</a>
+                                    {% endif %}
+                                    {% if col_status != 'Done' %}
+                                    <a href="/update_task_status/{{ t.task_id }}/Done/{{ selected_proj_id }}"
+                                        class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-[10px] text-emerald-300">Done
+                                        ✓</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- TAB 3: MENTOR HUB & MENTOR REQUESTS                       -->
+        <!-- ========================================================= -->
+        <section id="tab-mentors" class="tab-section space-y-8 hidden">
+
+            <!-- Faculty Mentor Cards -->
+            <div>
+                <h3 class="text-lg font-bold text-white mb-4"><i
+                        class="fa-solid fa-chalkboard-user text-amber-400 mr-2"></i>Faculty Mentor Hub</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {% for m in mentors %}
+                    <div class="glass glass-hover rounded-2xl p-5 flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-lg font-bold">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-base">{{ m.full_name }} <span
+                                        class="text-xs text-slate-500 mono">(ID #{{ m.user_id }})</span></h4>
+                                <p class="text-xs text-amber-400">{{ m.department }} Department</p>
+                                <p class="text-xs text-slate-400 mt-0.5">{{ m.email }}</p>
+                            </div>
+                        </div>
+                        <span
+                            class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-medium">Available</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Send Request + Live Requests Table -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="glass rounded-2xl p-6">
+                    <h4 class="font-bold text-white mb-4">📩 Pitch a Faculty Mentor</h4>
+                    <form method="POST" action="/request_mentor" class="space-y-4">
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Select Project</label>
+                            <select name="project_id"
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                                {% for proj in all_projects %}
+                                <option value="{{ proj.project_id }}">{{ proj.title }} (#{{ proj.project_id }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Select Mentor</label>
+                            <select name="mentor_id"
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                                {% for m in mentors %}
+                                <option value="{{ m.user_id }}">{{ m.full_name }} ({{ m.department }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Mentorship Pitch</label>
+                            <textarea name="pitch" rows="2" required placeholder="What technical guidance do you need?"
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white"></textarea>
+                        </div>
+                        <button type="submit"
+                            class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm transition">
+                            Submit Mentor Request
+                        </button>
+                    </form>
+                </div>
+
+                <div class="lg:col-span-2 glass rounded-2xl p-6">
+                    <h4 class="font-bold text-white mb-4">Active Mentorship Requests (`Mentor_Requests`)</h4>
+                    <div class="space-y-3">
+                        {% for mr in mentor_requests %}
+                        <div
+                            class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-white text-sm">{{ mr.project_name }}</span>
+                                    <span class="text-xs text-slate-500">→</span>
+                                    <span class="text-xs font-semibold text-amber-400">{{ mr.mentor_name }}</span>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-1">"{{ mr.pitch_message }}"</p>
+                            </div>
+                            <span
+                                class="px-3 py-1 rounded-full text-xs font-semibold {% if mr.request_status == 'Approved' %}bg-emerald-500/10 text-emerald-400{% else %}bg-amber-500/10 text-amber-400{% endif %}">
+                                {{ mr.request_status }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- TAB 4: PROJECT SHOWCASE & ADMIN DASHBOARD                 -->
+        <!-- ========================================================= -->
+        <section id="tab-showcase" class="tab-section space-y-8 hidden">
+
+            <!-- Admin Analytics Cards (GROUP BY) -->
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-white"><i
+                            class="fa-solid fa-chart-pie text-pink-400 mr-2"></i>Admin Dashboard Analytics</h3>
+                    <span
+                        class="text-xs px-3 py-1 rounded-full bg-pink-500/10 text-pink-400 border border-pink-500/20 mono">SELECT
+                        status, COUNT(*) GROUP BY status</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    {% for stat in admin_stats %}
+                    <div class="glass rounded-2xl p-6 border-l-4 border-l-indigo-500">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Projects: {{
+                            stat.status }}</span>
+                        <div class="text-4xl font-extrabold text-white mt-2">{{ stat.count }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Verified Project Showcase -->
+            <div>
+                <h3 class="text-lg font-bold text-white mb-4"><i
+                        class="fa-solid fa-award text-amber-400 mr-2"></i>Verified Project Showcase</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {% for sc in showcase %}
+                    <div class="glass glass-hover rounded-2xl p-6 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <span
+                                    class="px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-400 text-xs font-semibold">✓
+                                    Admin Verified</span>
+                                <a href="/upvote/{{ sc.showcase_id }}"
+                                    class="px-3 py-1.5 rounded-xl bg-pink-500/15 hover:bg-pink-500/30 border border-pink-500/30 text-pink-300 text-xs font-bold transition">
+                                    🔥 Upvote ({{ sc.upvotes }})
+                                </a>
+                            </div>
+                            <h4 class="text-xl font-bold text-white mb-1">{{ sc.title }}</h4>
+                            <p class="text-xs text-slate-400 mb-4">Lead Developer: <span
+                                    class="text-white font-semibold">{{ sc.lead_name }}</span></p>
+                        </div>
+                        <div class="flex gap-3 pt-4 border-t border-slate-800">
+                            <a href="{{ sc.github_repo_url }}" target="_blank"
+                                class="flex-1 text-center py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white transition">
+                                <i class="fa-brands fa-github mr-1"></i> Source Code
+                            </a>
+                            <a href="{{ sc.live_demo_url }}" target="_blank"
+                                class="flex-1 text-center py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition">
+                                <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Live Deployment
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600/20', 'text-white', 'border', 'border-indigo-500/30');
+                btn.classList.add('text-slate-400', 'hover:bg-slate-800/60');
+            });
+
+            const activeBtn = document.getElementById('nav-' + tabName);
+            activeBtn.classList.remove('text-slate-400', 'hover:bg-slate-800/60');
+            activeBtn.classList.add('bg-indigo-600/20', 'text-white', 'border', 'border-indigo-500/30');
+        }
+
+        function toggleXray() {
+            document.body.classList.toggle('xray-on');
+        }
+
+        // Open active tab passed from Flask URL parameter
+        switchTab("{{ active_tab }}");
+    </script>
+</body>
+
+</html>
