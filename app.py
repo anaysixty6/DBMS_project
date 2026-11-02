@@ -1,40 +1,29 @@
-from flask import Flask, render_template, request, redirect, url_for
 import os
 import mysql.connector
-
-def get_db():
-    return mysql.connector.connect(
-        host=os.environ.get("DB_HOST"),
-        port=int(os.environ.get("DB_PORT", 4000)),
-        user=os.environ.get("DB_USER"),
-        password=os.environ.get("DB_PASSWORD"),  # <-- Must be os.environ.get, not a real password string
-        database=os.environ.get("DB_NAME")
-    )
-import mysql.connector
+from flask import Flask, render_template, request, redirect, url_for
 
 app = Flask(__name__)
 
 def get_db():
     return mysql.connector.connect(
-        host=os.environ.get("mysql-121b7093-anay-35b4.c.aivencloud.com"),       # e.g., "mysql-xyz.aivencloud.com"
-        port=int(os.environ.get("21628")),         # e.g., 18234 (keep as integer, no quotes)
-        user=os.environ.get("avnadmin"),
-        password=os.environ.get("AVNS_zsQqCZsuSRG6gjXmuOA"),
-        database=os.environ.get("student_collab_db")          # or whatever you named your database
+        host=os.environ.get("DB_HOST", "mysql-121b7093-anay-35b4.c.aivencloud.com"),
+        port=int(os.environ.get("DB_PORT", 21628)),
+        user=os.environ.get("DB_USER", "avnadmin"),
+        password=os.environ.get("DB_PASSWORD", "YOUR_AIVEN_PASSWORD"),  # <-- Put your actual Aiven password here if running locally
+        database=os.environ.get("DB_NAME", "student_collab_db")
     )
 
 @app.route("/", methods=["GET"])
 def dashboard():
     conn = get_db()
     cursor = conn.cursor(dictionary=True)
-
     active_tab = request.args.get("tab", default="market")
 
     # 1A: Project Market (SQL View)
     cursor.execute("SELECT * FROM Open_Projects_View;")
     open_projects = cursor.fetchall()
 
-    # 1B: Skill Matching (4-Table JOIN)
+    # 1B: Skill Matching
     cursor.execute("SELECT user_id, full_name, department FROM Users WHERE role = 'Student';")
     students = cursor.fetchall()
     selected_student_id = request.args.get("student_id", default=4, type=int)
@@ -54,23 +43,22 @@ def dashboard():
         SELECT p.project_id, p.title AS project_title, u.full_name, tm.role_in_team, tm.join_status
         FROM Team_Members tm
         JOIN Projects p ON tm.project_id = p.project_id
-        JOIN Users u ON tm.user_id = u.user_id
-        ORDER BY p.project_id DESC;
+        JOIN Users u ON tm.user_id = u.user_id;
     """)
     team_members = cursor.fetchall()
 
-    # All projects for dropdowns
     cursor.execute("SELECT project_id, title, status FROM Projects;")
     all_projects = cursor.fetchall()
 
-    # 2B: Task Manager (Stored Procedure)
+    # 2B: Task Manager
     selected_proj_id = request.args.get("project_id", default=2, type=int)
-    cursor.callproc("Get_Project_Tasks", [selected_proj_id])
-    tasks = []
-    for result in cursor.stored_results():
-        tasks = result.fetchall()
+    cursor.execute("""
+        SELECT t.task_id, t.task_title, u.full_name AS assigned_student, t.deadline, t.task_status
+        FROM Tasks t LEFT JOIN Users u ON t.assigned_to = u.user_id WHERE t.project_id = %s;
+    """, (selected_proj_id,))
+    tasks = cursor.fetchall()
 
-    # 3: Mentor Hub & Mentor Request
+    # 3: Mentor Hub
     cursor.execute("SELECT user_id, full_name, email, department FROM Users WHERE role = 'Mentor';")
     mentors = cursor.fetchall()
 
@@ -79,8 +67,7 @@ def dashboard():
                u.department, mr.pitch_message, mr.request_status
         FROM Mentor_Requests mr
         JOIN Projects p ON mr.project_id = p.project_id
-        JOIN Users u ON mr.mentor_id = u.user_id
-        ORDER BY mr.request_id DESC;
+        JOIN Users u ON mr.mentor_id = u.user_id;
     """)
     mentor_requests = cursor.fetchall()
 
@@ -89,14 +76,13 @@ def dashboard():
         SELECT ps.showcase_id, p.title, p.description, u.full_name AS lead_name, 
                ps.github_repo_url, ps.live_demo_url, ps.upvotes
         FROM Project_Showcase ps
-        JOIN Projects p ON ps.project_id = p.project_id
+        JOIN Projects p ps.project_id = p.project_id
         JOIN Users u ON p.creator_id = u.user_id
-        WHERE ps.is_approved = TRUE
-        ORDER BY ps.upvotes DESC;
+        WHERE ps.is_approved = TRUE;
     """)
     showcase = cursor.fetchall()
 
-    # 4B: Admin Dashboard (GROUP BY Analytics)
+    # 4B: Admin Dashboard Analytics
     cursor.execute("SELECT status, COUNT(*) AS count FROM Projects GROUP BY status;")
     admin_stats = cursor.fetchall()
 
@@ -120,7 +106,6 @@ def dashboard():
         admin_stats=admin_stats
     )
 
-# Trigger Route: Creates Project & Fires Auto_Add_Creator_To_Team Trigger
 @app.route("/create_project", methods=["POST"])
 def create_project():
     conn = get_db()
@@ -134,7 +119,6 @@ def create_project():
     conn.close()
     return redirect(url_for("dashboard", tab="teams"))
 
-# Task Status Cycle Route (For Kanban Board)
 @app.route("/update_task_status/<int:task_id>/<string:new_status>/<int:proj_id>")
 def update_task_status(task_id, new_status, proj_id):
     conn = get_db()
@@ -145,7 +129,6 @@ def update_task_status(task_id, new_status, proj_id):
     conn.close()
     return redirect(url_for("dashboard", tab="teams", project_id=proj_id))
 
-# Add New Task Route
 @app.route("/add_task", methods=["POST"])
 def add_task():
     proj_id = request.form["project_id"]
@@ -160,7 +143,6 @@ def add_task():
     conn.close()
     return redirect(url_for("dashboard", tab="teams", project_id=proj_id))
 
-# Mentor Request Route
 @app.route("/request_mentor", methods=["POST"])
 def request_mentor():
     conn = get_db()
@@ -174,7 +156,6 @@ def request_mentor():
     conn.close()
     return redirect(url_for("dashboard", tab="mentors"))
 
-# Live Upvote Route for Project Showcase
 @app.route("/upvote/<int:showcase_id>")
 def upvote(showcase_id):
     conn = get_db()
