@@ -9,7 +9,7 @@ def get_db():
         host=os.environ.get("DB_HOST", "mysql-121b7093-anay-35b4.c.aivencloud.com"),
         port=int(os.environ.get("DB_PORT", 21628)),
         user=os.environ.get("DB_USER", "avnadmin"),
-        password=os.environ.get("DB_PASSWORD", "AVNS_zsQqCZsuSRG6gjXmuOA"),  # <-- Put your actual Aiven password here if running locally
+        password=os.environ.get("DB_PASSWORD", "YOUR_AIVEN_PASSWORD"),  # <-- Put your actual Aiven password here if running locally
         database=os.environ.get("DB_NAME", "student_collab_db")
     )
 
@@ -71,12 +71,12 @@ def dashboard():
     """)
     mentor_requests = cursor.fetchall()
 
-    # 4A: Project Showcase
+    # 4A: Project Showcase (FIXED THE JOIN SYNTAX HERE)
     cursor.execute("""
         SELECT ps.showcase_id, p.title, p.description, u.full_name AS lead_name, 
                ps.github_repo_url, ps.live_demo_url, ps.upvotes
         FROM Project_Showcase ps
-        JOIN Projects p ps.project_id = p.project_id
+        JOIN Projects p ON ps.project_id = p.project_id
         JOIN Users u ON p.creator_id = u.user_id
         WHERE ps.is_approved = TRUE;
     """)
