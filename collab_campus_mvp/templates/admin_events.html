@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Manage Events | Collab Campus{% endblock %}
+{% block content %}
+<div class="section-heading"><span class="eyebrow">CAMPUS ACTIVITIES</span><h1>Manage events</h1><p class="muted">Add hackathons, competitions and campus events.</p></div>
+<div class="panel narrow-panel"><form method="POST"><label>Event title</label><input name="title" required><label>Description</label><textarea name="description" rows="3"></textarea><div class="form-grid"><div><label>Start date</label><input type="date" name="start_date"></div><div><label>End date</label><input type="date" name="end_date"></div></div><button class="btn" type="submit">Add event</button></form></div>
+<div class="section-title"><h2>Existing events</h2></div><div class="card-grid">{% for e in events %}<article class="project-card"><h3>{{ e.title }}</h3><p>{{ e.description }}</p><span class="muted">{{ e.start_date or 'Date not set' }} – {{ e.end_date or 'Date not set' }}</span></article>{% else %}<div class="empty-state">No events added yet.</div>{% endfor %}</div>
+{% endblock %}

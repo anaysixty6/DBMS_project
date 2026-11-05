@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Pitch a Project | Collab Campus{% endblock %}
+{% block content %}
+<div class="narrow"><div class="section-heading"><span class="eyebrow">SHARE YOUR IDEA</span><h1>Pitch a project</h1><p class="muted">Submit your idea. An admin will review it before it appears to students.</p></div>
+<div class="panel"><form method="POST">
+<label>Project title</label><input name="title" required placeholder="e.g. Smart Campus App">
+<label>Project description</label><textarea name="description" rows="5" required placeholder="Describe the problem and your idea..."></textarea>
+<label>Maximum team size</label><select name="max_team_size">{% for n in range(2, 9) %}<option value="{{ n }}" {% if n == 4 %}selected{% endif %}>{{ n }} members</option>{% endfor %}</select>
+<label>Skills required</label><div class="skill-grid">{% for skill in skills %}<label class="skill-option"><input type="checkbox" name="skills" value="{{ skill.skill_id }}"><span>{{ skill.skill_name }}</span></label>{% endfor %}</div>
+<button class="btn full" type="submit">Submit for approval</button></form></div></div>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Find Teams | Collab Campus{% endblock %}
+{% block content %}
+<div class="section-heading"><span class="eyebrow">FIND YOUR PEOPLE</span><h1>Teams looking for members</h1><p class="muted">Send a request to join a team working on an approved project.</p></div>
+<div class="card-grid">{% for t in teams %}
+<article class="project-card"><span class="tag">{{ t.members }}/{{ t.max_team_size }} MEMBERS</span><h3>{{ t.team_name }}</h3><p>{{ t.project_title }}</p><div class="card-bottom"><span>{{ t.max_team_size-t.members }} spots left</span></div>
+<form method="POST" action="{{ url_for('join_team', team_id=t.team_id) }}"><input name="message" placeholder="Message to team leader (optional)"><button class="btn full" type="submit">Request to join</button></form></article>
+{% else %}<div class="empty-state">No teams with open spaces right now.</div>{% endfor %}</div>
+{% endblock %}

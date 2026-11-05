@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Notifications | Collab Campus{% endblock %}
+{% block content %}
+<div class="section-heading"><span class="eyebrow">UPDATES FOR YOU</span><h1>Notifications</h1><p class="muted">Your latest project and team activity.</p></div>
+<div class="card-grid">{% for n in notifications %}<article class="project-card"><span class="tag">{{ 'READ' if n.is_read else 'NEW' }}</span><p>{{ n.message }}</p><div class="card-bottom"><span>Notification #{{ n.notification_id }}</span></div></article>{% else %}<div class="empty-state">You're all caught up. No notifications yet.</div>{% endfor %}</div>
+{% endblock %}

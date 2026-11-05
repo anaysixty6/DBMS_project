@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard | Collab Campus{% endblock %}
+{% block content %}
+<div class="welcome-row"><div><span class="eyebrow">ADMINISTRATION</span><h1>Admin dashboard</h1><p class="muted">Manage the Collab Campus community.</p></div><a class="btn" href="{{ url_for('admin_projects') }}">Manage projects</a></div>
+<div class="stats-grid">
+  <div class="stat-card"><span class="stat-icon">🎓</span><div class="stat-number">{{ students }}</div><div class="muted">Students</div></div>
+  <div class="stat-card"><span class="stat-icon">🚀</span><div class="stat-number">{{ projects }}</div><div class="muted">Projects</div></div>
+  <div class="stat-card"><span class="stat-icon">⏳</span><div class="stat-number">{{ pending }}</div><div class="muted">Pending approvals</div></div>
+</div>
+<div class="section-title"><div><span class="eyebrow">ACTION REQUIRED</span><h2>Pending project pitches</h2></div><a href="{{ url_for('admin_projects') }}">View all →</a></div>
+<div class="table-wrap"><table><thead><tr><th>Project</th><th>Description</th><th>Action</th></tr></thead><tbody>
+{% for p in pending_projects %}<tr><td><strong>{{ p.title }}</strong></td><td>{{ p.description }}</td><td><a href="{{ url_for('admin_projects') }}">Review</a></td></tr>{% else %}<tr><td colspan="3">No pending pitches.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

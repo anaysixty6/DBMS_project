@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Collab Campus{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="{{ url_for('dashboard') if session.get('user_id') else url_for('login') }}">
+    <span class="brand-mark">C</span> Collab Campus
+  </a>
+  {% if session.get('user_id') %}
+  <nav>
+    {% if session.get('role') == 'student' %}
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('projects') }}">Explore Projects</a>
+      <a href="{{ url_for('teams') }}">Find Teams</a>
+      <a href="{{ url_for('pitch') }}">Pitch Idea</a>
+      <a href="{{ url_for('my_tasks') }}">My Tasks</a>
+      <a href="{{ url_for('team_requests') }}">Team Requests</a>
+      <a href="{{ url_for('my_teams') }}">My Teams</a>
+      <a href="{{ url_for('project_updates') }}">Updates</a>
+      <a href="{{ url_for('notifications') }}">Notifications</a>
+    {% else %}
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('admin_projects') }}">Manage Projects</a>
+      <a href="{{ url_for('admin_events') }}">Manage Events</a>
+      <a href="{{ url_for('admin_students') }}">Students</a>
+      <a href="{{ url_for('admin_teams') }}">Teams</a>
+      <a href="{{ url_for('admin_skills') }}">Skills</a>
+      <a href="{{ url_for('notifications') }}">Notifications</a>
+    {% endif %}
+    <a class="nav-logout" href="{{ url_for('logout') }}">Logout</a>
+  </nav>
+  {% endif %}
+</header>
+<main class="page">
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-list">
+      {% for message in messages %}<div class="flash">{{ message }}</div>{% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<footer>Collab Campus · Find your team. Build your idea.</footer>
+</body>
+</html>

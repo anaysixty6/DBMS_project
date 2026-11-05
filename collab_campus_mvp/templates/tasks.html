@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}My Tasks | Collab Campus{% endblock %}
+{% block content %}
+<div class="section-heading"><span class="eyebrow">STAY ON TRACK</span><h1>My tasks</h1><p class="muted">Tasks assigned to you across your projects. Update the status as you make progress.</p></div>
+<div class="table-wrap"><table><thead><tr><th>Task</th><th>Project</th><th>Due date</th><th>Status</th><th>Update</th></tr></thead><tbody>
+{% for t in tasks %}<tr><td><strong>{{ t.title }}</strong><br><span class="muted">{{ t.description }}</span></td><td>{{ t.project_title }}</td><td>{{ t.due_date or 'Not set' }}</td><td><span class="tag">{{ t.status }}</span></td><td><form method="POST" action="{{ url_for('update_task_status', task_id=t.task_id) }}"><select name="status"><option value="todo" {% if t.status == 'todo' %}selected{% endif %}>To do</option><option value="in_progress" {% if t.status == 'in_progress' %}selected{% endif %}>In progress</option><option value="done" {% if t.status == 'done' %}selected{% endif %}>Done</option></select><button class="btn small" type="submit">Save</button></form></td></tr>{% else %}<tr><td colspan="5">No tasks assigned yet.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

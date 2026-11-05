@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Explore Projects | Collab Campus{% endblock %}
+{% block content %}
+<div class="section-heading"><span class="eyebrow">DISCOVER OPPORTUNITIES</span><h1>Explore projects</h1><p class="muted">Find a project that matches your skills and interests.</p></div>
+<div class="card-grid">
+{% for p in projects %}
+<article class="project-card"><div class="card-top"><span class="tag">BY {{ p.pitcher }}</span><span class="match">{{ p.match_percent }}% match</span></div><h3>{{ p.title }}</h3><p>{{ p.description or 'No description provided.' }}</p><div class="card-bottom"><span>Team capacity: {{ p.max_team_size }}</span>{% if p.has_team %}<a href="{{ url_for('teams') }}">Find team →</a>{% else %}<span class="muted">Team not created yet</span>{% endif %}</div></article>
+{% else %}<div class="empty-state">No approved projects are available yet.</div>{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Manage Projects | Collab Campus{% endblock %}
+{% block content %}
+<div class="section-heading"><span class="eyebrow">ADMIN CONTROL</span><h1>Manage projects</h1><p class="muted">Review student pitches and approve suitable projects.</p></div>
+<div class="table-wrap"><table><thead><tr><th>Project</th><th>Pitched by</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+{% for p in projects %}<tr><td><strong>{{ p.title }}</strong><br><span class="muted">{{ p.description }}</span></td><td>{{ p.pitcher }}</td><td><span class="tag">{{ p.status }}</span></td><td>{% if p.status == 'pending' %}<form class="inline-form" method="POST" action="{{ url_for('update_project', project_id=p.project_id, action='approved') }}"><button class="btn small" type="submit">Approve</button></form><form class="inline-form" method="POST" action="{{ url_for('update_project', project_id=p.project_id, action='rejected') }}"><button class="btn small danger" type="submit">Reject</button></form>{% else %}—{% endif %}</td></tr>{% else %}<tr><td colspan="4">No projects found.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

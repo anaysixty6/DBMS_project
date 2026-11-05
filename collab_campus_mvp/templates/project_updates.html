@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Project Updates | Collab Campus{% endblock %}
+{% block content %}
+<div class="section-heading"><span class="eyebrow">TEAM COMMUNICATION</span><h1>Project updates</h1><p class="muted">Share progress and keep your team informed.</p></div>
+{% if projects %}
+<div class="panel narrow-panel"><form method="POST"><label>Select project</label><select name="project_id" required>{% for p in projects %}<option value="{{ p.project_id }}">{{ p.title }}</option>{% endfor %}</select><label>Update</label><textarea name="content" rows="3" required placeholder="Share your progress..."></textarea><button class="btn" type="submit">Post update</button></form></div>
+{% endif %}
+<div class="card-grid">{% for u in updates %}<article class="project-card"><span class="tag">{{ u.project_title }}</span><p>{{ u.content }}</p><div class="card-bottom"><span>Posted by {{ u.posted_by }}</span></div></article>{% else %}<div class="empty-state">No project updates yet.</div>{% endfor %}</div>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}My Teams | Collab Campus{% endblock %}
+{% block content %}
+<div class="section-heading"><span class="eyebrow">YOUR COLLABORATIONS</span><h1>My teams</h1><p class="muted">Projects and teammates you're currently working with.</p></div>
+<div class="card-grid">{% for t in teams %}<article class="project-card"><span class="tag">TEAM #{{ t.team_id }}</span><h3>{{ t.team_name }}</h3><p>{{ t.project_title }}</p><div class="card-bottom"><span>Leader: {{ t.leader_name }}</span><a href="{{ url_for('project_updates') }}">Project updates →</a></div></article>{% else %}<div class="empty-state">You haven't joined any teams yet.</div>{% endfor %}</div>
+{% endblock %}

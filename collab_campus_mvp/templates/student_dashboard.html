@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard | Collab Campus{% endblock %}
+{% block content %}
+<div class="welcome-row"><div><span class="eyebrow">STUDENT WORKSPACE</span><h1>Welcome back, {{ session.get('name') }} 👋</h1><p class="muted">Here's what's happening in your campus community.</p></div><a class="btn" href="{{ url_for('pitch') }}">＋ Pitch a project</a></div>
+<div class="stats-grid">
+  <div class="stat-card"><span class="stat-icon">👥</span><div class="stat-number">{{ team_count }}</div><div class="muted">My teams</div></div>
+  <div class="stat-card"><span class="stat-icon">✓</span><div class="stat-number">{{ task_count }}</div><div class="muted">Pending tasks</div></div>
+  <div class="stat-card"><span class="stat-icon">🚀</span><div class="stat-number">{{ recommendations|length }}</div><div class="muted">Recommended projects</div></div>
+</div>
+<div class="section-title"><div><span class="eyebrow">BASED ON YOUR SKILLS</span><h2>Recommended projects</h2></div><a href="{{ url_for('projects') }}">View all →</a></div>
+<div class="card-grid">
+{% for p in recommendations %}
+  <article class="project-card"><div class="card-top"><span class="tag">PROJECT MATCH</span><span class="match">{{ ((p.matched_skills or 0) * 100 / p.total_skills)|round|int if p.total_skills else 0 }}% match</span></div><h3>{{ p.title }}</h3><p>{{ p.description or 'No description provided.' }}</p><div class="card-bottom"><span>Team size: {{ p.max_team_size }}</span><a href="{{ url_for('projects') }}">Explore →</a></div></article>
+{% else %}<div class="empty-state">No project recommendations yet. Add skills to your profile or explore projects.</div>{% endfor %}
+</div>
+{% endblock %}

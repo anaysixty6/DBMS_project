@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Manage Skills | Collab Campus{% endblock %}
+{% block content %}
+<div class="section-heading"><span class="eyebrow">ADMIN CONTROL</span><h1>Manage skills</h1><p class="muted">Add skills students can select for their profiles and project pitches.</p></div>
+<div class="panel narrow-panel"><form method="POST"><label>New skill</label><input name="skill_name" required placeholder="e.g. Data Analysis"><button class="btn" type="submit">Add skill</button></form></div>
+<div class="card-grid">{% for s in skills %}<article class="project-card"><span class="tag">SKILL #{{ s.skill_id }}</span><h3>{{ s.skill_name }}</h3></article>{% else %}<div class="empty-state">No skills available.</div>{% endfor %}</div>
+{% endblock %}

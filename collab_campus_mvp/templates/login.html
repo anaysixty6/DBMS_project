@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Login | Collab Campus{% endblock %}
+{% block content %}
+<section class="auth-wrap">
+  <div class="auth-intro">
+    <span class="eyebrow">YOUR CAMPUS. YOUR COMMUNITY.</span>
+    <h1>Great ideas are built <span>together.</span></h1>
+    <p>Find teammates, discover projects and turn your ideas into something real.</p>
+    <div class="mini-points"><span>✦ Find your people</span><span>✦ Build together</span><span>✦ Make it happen</span></div>
+  </div>
+  <div class="panel auth-panel">
+    <span class="eyebrow">WELCOME BACK</span>
+    <h2>Sign in to Collab Campus</h2>
+    <p class="muted">Enter your account details to continue.</p>
+    <form method="POST">
+      <label>Email address</label>
+      <input type="email" name="email" placeholder="you@college.edu" required>
+      <label>Password</label>
+      <input type="password" name="password" placeholder="Enter your password" required>
+      <button class="btn full" type="submit">Sign in</button>
+    </form>
+    <p class="form-foot">New to Collab Campus? <a href="{{ url_for('register') }}">Create an account</a></p>
+  </div>
+</section>
+{% endblock %}

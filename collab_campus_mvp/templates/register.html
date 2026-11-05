@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Register | Collab Campus{% endblock %}
+{% block content %}
+<div class="narrow">
+  <div class="section-heading">
+    <span class="eyebrow">GET STARTED</span><h1>Create your student account</h1>
+    <p class="muted">Tell us what you do best. We'll help you find your team.</p>
+  </div>
+  <div class="panel">
+    <form method="POST" class="form-grid">
+      <div><label>Full name</label><input name="name" placeholder="Your full name" required></div>
+      <div><label>Email address</label><input type="email" name="email" placeholder="you@college.edu" required></div>
+      <div><label>Password</label><input type="password" name="password" minlength="6" placeholder="At least 6 characters" required></div>
+      <div><label>Department</label><input name="department" placeholder="e.g. Computer Science" required></div>
+      <div><label>Year of study</label><select name="year" required><option value="">Select year</option>{% for y in range(1, 6) %}<option value="{{ y }}">Year {{ y }}</option>{% endfor %}</select></div>
+      <div class="full-row"><label>Your skills</label><div class="skill-grid">
+        {% for skill in skills %}<label class="skill-option"><input type="checkbox" name="skills" value="{{ skill.skill_id }}"><span>{{ skill.skill_name }}</span></label>{% endfor %}
+      </div></div>
+      <div class="full-row"><button class="btn full" type="submit">Create account</button></div>
+    </form>
+    <p class="form-foot">Already registered? <a href="{{ url_for('login') }}">Sign in</a></p>
+  </div>
+</div>
+{% endblock %}

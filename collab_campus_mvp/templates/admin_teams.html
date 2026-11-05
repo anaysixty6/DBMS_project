@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Manage Teams | Collab Campus{% endblock %}
+{% block content %}
+<div class="section-heading"><span class="eyebrow">ADMIN CONTROL</span><h1>Teams</h1><p class="muted">Monitor project teams and membership.</p></div>
+<div class="table-wrap"><table><thead><tr><th>Team</th><th>Project</th><th>Leader</th><th>Members</th></tr></thead><tbody>{% for t in teams %}<tr><td><strong>{{ t.team_name }}</strong></td><td>{{ t.project_title }}</td><td>{{ t.leader_name }}</td><td>{{ t.member_count }}/{{ t.max_team_size }}</td></tr>{% else %}<tr><td colspan="4">No teams created.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

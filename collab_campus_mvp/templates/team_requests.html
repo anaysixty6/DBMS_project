@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Team Requests | Collab Campus{% endblock %}
+{% block content %}
+<div class="section-heading"><span class="eyebrow">TEAM LEADER WORKSPACE</span><h1>Join requests</h1><p class="muted">Review students who want to join your teams.</p></div>
+<div class="card-grid">
+{% for r in requests %}
+<article class="project-card">
+  <span class="tag">{{ r.team_name }}</span>
+  <h3>{{ r.applicant }}</h3>
+  <p><strong>Project:</strong> {{ r.project_title }}</p>
+  <p>{{ r.message or 'No message provided.' }}</p>
+  <div class="card-bottom">
+    <form class="inline-form" method="POST" action="{{ url_for('update_team_request', request_id=r.request_id, action='accepted') }}"><button class="btn small" type="submit">Accept</button></form>
+    <form class="inline-form" method="POST" action="{{ url_for('update_team_request', request_id=r.request_id, action='rejected') }}"><button class="btn small danger" type="submit">Reject</button></form>
+  </div>
+</article>
+{% else %}<div class="empty-state">You have no pending join requests.</div>{% endfor %}
+</div>
+{% endblock %}
