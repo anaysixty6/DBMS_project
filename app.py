@@ -1,28 +1,70 @@
 import os
 import mysql.connector
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template_string, request, redirect, url_for, session
 
 app = Flask(__name__)
+app.secret_key = "student_collab_secret_key"  # Required for session management
 
 def get_db():
     return mysql.connector.connect(
         host=os.environ.get("DB_HOST", "mysql-121b7093-anay-35b4.c.aivencloud.com"),
         port=int(os.environ.get("DB_PORT", 21628)),
         user=os.environ.get("DB_USER", "avnadmin"),
-        password=os.environ.get("DB_PASSWORD", "AVNS_zsQqCZsuSRG6gjXmuOA"),
+        password=os.environ.get("DB_PASSWORD", "YOUR_AIVEN_PASSWORD_HERE"),
         database=os.environ.get("DB_NAME", "student_collab_db")
     )
 
-@app.route("/", methods=["GET"])
-def dashboard():
+# =====================================================================
+# 1. LOGIN ROUTE & AUTHENTICATION
+# =====================================================================
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = None
+    if request.method == "POST":
+        email = request.form["email"]
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        # Check user in the Users table
+        cursor.execute("SELECT * FROM Users WHERE email = %s;", (email,))
+        user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if user:
+            session["user_id"] = user["user_id"]
+            session["full_name"] = user["full_name"]
+            session["role"] = user["role"]  # 'Student', 'Mentor', or 'Admin'[cite: 1, 4]
+
+            # Route based on role
+            if user["role"] == "Admin":
+                return redirect(url_for("admin_dashboard"))
+            else:
+                return redirect(url_for("student_dashboard"))
+        else:
+            error = "Invalid email address. Try admin@college.edu or aarav@college.edu"
+
+    return render_template_string(LOGIN_TEMPLATE, error=error)
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
+# =====================================================================
+# 2. STUDENT DASHBOARD (The 5-Section Platform)
+# =====================================================================
+@app.route("/student/dashboard", methods=["GET"])
+def student_dashboard():
+    if "user_id" not in session or session.get("role") != "Student":
+        return redirect(url_for("login"))
+
     conn = get_db()
     cursor = conn.cursor(dictionary=True)
 
-    # All Skills (for checkboxes in Student Registration & Project Creation)
     cursor.execute("SELECT skill_id, skill_name, category FROM Skills ORDER BY skill_name;")
     all_skills = cursor.fetchall()
 
-    # All Students (along with their comma-separated skills)
     cursor.execute("""
         SELECT u.user_id, u.full_name, u.email, u.department, u.graduation_year,
                GROUP_CONCAT(CONCAT(s.skill_name, ' (', us.proficiency, ')') SEPARATOR ', ') AS skills_list
@@ -35,11 +77,10 @@ def dashboard():
     """)
     students = cursor.fetchall()
 
-    # SECTION 2: Find a Project (Open Projects View + Skill Matching)
     cursor.execute("SELECT * FROM Open_Projects_View ORDER BY project_id DESC;")
     open_projects = cursor.fetchall()
 
-    selected_student_id = request.args.get("student_id", default=1, type=int)
+    selected_student_id = request.args.get("student_id", default=session["user_id"], type=int)
     cursor.execute("""
         SELECT p.project_id, p.title AS project_title, p.description, s.skill_name, us.proficiency
         FROM Projects p
@@ -50,7 +91,6 @@ def dashboard():
     """, (selected_student_id,))
     matched_projects = cursor.fetchall()
 
-    # SECTION 3: Find a Team & Task Manager
     cursor.execute("SELECT project_id, title, status, max_team_size FROM Projects ORDER BY project_id DESC;")
     all_projects = cursor.fetchall()
 
@@ -73,7 +113,6 @@ def dashboard():
     """, (selected_proj_id,))
     tasks = cursor.fetchall()
 
-    # SECTION 4: Find a Mentor (Mentor Hub & Requests)
     cursor.execute("SELECT user_id, full_name, email, department FROM Users WHERE role = 'Mentor';")
     mentors = cursor.fetchall()
 
@@ -87,7 +126,6 @@ def dashboard():
     """)
     mentor_requests = cursor.fetchall()
 
-    # SECTION 5: Project Showcase & Admin Dashboard
     cursor.execute("""
         SELECT ps.showcase_id, p.title, p.description, u.full_name AS lead_name, 
                ps.github_repo_url, ps.live_demo_url, ps.upvotes
@@ -105,8 +143,8 @@ def dashboard():
     cursor.close()
     conn.close()
 
-    return render_template(
-        "index.html",
+    return render_template_string(
+        STUDENT_TEMPLATE,
         all_skills=all_skills,
         students=students,
         open_projects=open_projects,
@@ -122,7 +160,54 @@ def dashboard():
         admin_stats=admin_stats
     )
 
-# 1. Register Student + Assign Multiple Skills
+
+# =====================================================================
+# 3. ADMIN DASHBOARD (Separate Admin Access Control)
+# =====================================================================
+@app.route("/admin/dashboard", methods=["GET"])
+def admin_dashboard():
+    if "user_id" not in session or session.get("role") != "Admin":
+        return redirect(url_for("login"))
+
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+
+    # Admin Analytics View metrics[cite: 1, 4]
+    cursor.execute("SELECT * FROM Admin_Dashboard_Stats;")
+    stats = cursor.fetchone()
+
+    # Unapproved Showcase submissions awaiting Admin approval[cite: 1, 4]
+    cursor.execute("""
+        SELECT ps.showcase_id, p.title, p.description, u.full_name AS lead_name, 
+               ps.github_repo_url, ps.is_approved
+        FROM Project_Showcase ps
+        JOIN Projects p ON ps.project_id = p.project_id
+        JOIN Users u ON p.creator_id = u.user_id;
+    """)
+    all_showcases = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return render_template_string(ADMIN_TEMPLATE, stats=stats, showcases=all_showcases)
+
+@app.route("/admin/approve_showcase/<int:showcase_id>", methods=["POST"])
+def approve_showcase(showcase_id):
+    if session.get("role") != "Admin":
+        return redirect(url_for("login"))
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE Project_Showcase SET is_approved = TRUE, approved_by_admin = %s WHERE showcase_id = %s;", (session["user_id"], showcase_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return redirect(url_for("admin_dashboard"))
+
+
+# =====================================================================
+# STUDENT ACTION ROUTES
+# =====================================================================
 @app.route("/register_student", methods=["POST"])
 def register_student():
     full_name = request.form["full_name"]
@@ -146,16 +231,12 @@ def register_student():
                 INSERT INTO User_Skills (user_id, skill_id, proficiency)
                 VALUES (%s, %s, %s);
             """, (new_user_id, skill_id, proficiency))
-
         conn.commit()
-    except Exception as e:
-        print("Error registering student:", e)
     finally:
         cursor.close()
         conn.close()
-    return redirect(url_for("dashboard") + "#register-section")
+    return redirect(url_for("student_dashboard") + "#register-section")
 
-# Add a Custom New Skill to the Database
 @app.route("/add_skill", methods=["POST"])
 def add_skill():
     skill_name = request.form["skill_name"]
@@ -168,9 +249,8 @@ def add_skill():
     finally:
         cursor.close()
         conn.close()
-    return redirect(url_for("dashboard") + "#register-section")
+    return redirect(url_for("student_dashboard") + "#register-section")
 
-# 2. Create New Project + Required Skills
 @app.route("/create_project", methods=["POST"])
 def create_project():
     creator_id = request.form["creator_id"]
@@ -188,7 +268,6 @@ def create_project():
         """, (creator_id, title, description, max_size))
         new_proj_id = cursor.lastrowid
 
-        # Ensure creator is added to Team_Members even if Trigger isn't present
         cursor.execute("""
             INSERT IGNORE INTO Team_Members (project_id, user_id, role_in_team, join_status)
             VALUES (%s, %s, 'Project Lead', 'Accepted');
@@ -199,14 +278,12 @@ def create_project():
                 INSERT IGNORE INTO Project_Skills (project_id, skill_id, is_mandatory)
                 VALUES (%s, %s, TRUE);
             """, (new_proj_id, sid))
-
         conn.commit()
     finally:
         cursor.close()
         conn.close()
-    return redirect(url_for("dashboard") + "#projects-section")
+    return redirect(url_for("student_dashboard") + "#projects-section")
 
-# 3. Join a Team (Find a Team)
 @app.route("/join_team", methods=["POST"])
 def join_team():
     project_id = request.form["project_id"]
@@ -224,9 +301,8 @@ def join_team():
     finally:
         cursor.close()
         conn.close()
-    return redirect(url_for("dashboard") + "#teams-section")
+    return redirect(url_for("student_dashboard") + "#teams-section")
 
-# Add & Update Tasks
 @app.route("/add_task", methods=["POST"])
 def add_task():
     proj_id = request.form["project_id"]
@@ -239,7 +315,7 @@ def add_task():
     conn.commit()
     cursor.close()
     conn.close()
-    return redirect(url_for("dashboard", project_id=proj_id) + "#teams-section")
+    return redirect(url_for("student_dashboard", project_id=proj_id) + "#teams-section")
 
 @app.route("/update_task_status/<int:task_id>/<string:new_status>/<int:proj_id>")
 def update_task_status(task_id, new_status, proj_id):
@@ -249,9 +325,8 @@ def update_task_status(task_id, new_status, proj_id):
     conn.commit()
     cursor.close()
     conn.close()
-    return redirect(url_for("dashboard", project_id=proj_id) + "#teams-section")
+    return redirect(url_for("student_dashboard", project_id=proj_id) + "#teams-section")
 
-# 4. Find a Mentor (Submit Mentor Request)
 @app.route("/request_mentor", methods=["POST"])
 def request_mentor():
     conn = get_db()
@@ -263,9 +338,8 @@ def request_mentor():
     conn.commit()
     cursor.close()
     conn.close()
-    return redirect(url_for("dashboard") + "#mentors-section")
+    return redirect(url_for("student_dashboard") + "#mentors-section")
 
-# 5. Upvote Showcase Project
 @app.route("/upvote/<int:showcase_id>")
 def upvote(showcase_id):
     conn = get_db()
@@ -274,8 +348,11 @@ def upvote(showcase_id):
     conn.commit()
     cursor.close()
     conn.close()
-    return redirect(url_for("dashboard") + "#showcase-section")
+    return redirect(url_for("student_dashboard") + "#showcase-section")
+
+@app.route("/")
+def index():
+    return redirect(url_for("login"))
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(host="0.0.0.0", port=5000, debug=True)
